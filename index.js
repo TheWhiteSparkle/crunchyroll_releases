@@ -1,48 +1,57 @@
 import express from "express";
-import fetch from "node-fetch";
-import * as cheerio from "cheerio";
+import puppeteer from "puppeteer";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const CRUNCHY_URL = "https://www.crunchyroll.com/videos/anime";
+const CRUNCHY_URL = "https://www.crunchyroll.com/de/videos/new";
 
 app.get("/feed", async (req, res) => {
+  let browser;
   try {
-    const response = await fetch(CRUNCHY_URL);
-    const html = await response.text();
-    const $ = cheerio.load(html);
+    browser = await puppeteer.launch({ headless: "new" });
+    const page = await browser.newPage();
+    await page.goto(CRUNCHY_URL, { waitUntil: "networkidle2" });
 
-    const items = [];
+    const items = await page.evaluate(() => {
+      const cards = document.querySelectorAll(".new_eps .erc-card");
+      const episodes = [];
 
-    $(".browse-card").each((_, element) => {
-      const title = $(element).find(".browse-card-title").text().trim();
-      const link = "https://www.crunchyroll.com" + $(element).find("a").attr("href");
-      const thumbnail = $(element).find("img").attr("src");
-      const dateText = $(element).find(".browse-card-date").text().trim() || "Today";
+      cards.forEach(card => {
+        const titleEl = card.querySelector(".text--primary");
+        const linkEl = card.querySelector("a");
+        const imgEl = card.querySelector("img");
+        const dateEl = card.querySelector(".text--subdued");
 
-      const pubDate = new Date();
+        if (!titleEl || !linkEl || !imgEl) return;
 
-      items.push({ title, link, thumbnail, pubDate });
+        const title = titleEl.textContent.trim();
+        const link = "https://www.crunchyroll.com" + linkEl.getAttribute("href");
+        const thumbnail = imgEl.getAttribute("src");
+        const pubDate = new Date().toUTCString(); // Fallback, echte Daten optional später
+
+        episodes.push({ title, link, thumbnail, pubDate });
+      });
+
+      return episodes;
     });
 
-    const rssItems = items
-      .map(
-        (item) => `
-        <item>
-          <title>${item.title}</title>
-          <link>${item.link}</link>
-          <pubDate>${item.pubDate.toUTCString()}</pubDate>
-          <description><![CDATA[<img src="${item.thumbnail}" />]]></description>
-        </item>`
-      )
-      .join("");
+    await browser.close();
+
+    const rssItems = items.map(item => `
+      <item>
+        <title>${item.title}</title>
+        <link>${item.link}</link>
+        <pubDate>${item.pubDate}</pubDate>
+        <description><![CDATA[<img src="${item.thumbnail}" />]]></description>
+      </item>
+    `).join("");
 
     const rss = `<?xml version="1.0" encoding="UTF-8" ?>
       <rss version="2.0">
         <channel>
-          <title>Crunchyroll – Neue Episoden</title>
+          <title>Crunchyroll – Neue Episoden (Puppeteer)</title>
           <link>${CRUNCHY_URL}</link>
-          <description>Inoffizieller RSS-Feed der neuesten Crunchyroll-Episoden</description>
+          <description>RSS-Feed der neuesten Crunchyroll-Folgen (via Puppeteer)</description>
           ${rssItems}
         </channel>
       </rss>`;
@@ -50,8 +59,9 @@ app.get("/feed", async (req, res) => {
     res.set("Content-Type", "application/rss+xml");
     res.send(rss);
   } catch (err) {
+    if (browser) await browser.close();
     console.error(err);
-    res.status(500).send("Error generating RSS feed");
+    res.status(500).send("Fehler beim Generieren des RSS-Feeds");
   }
 });
 
