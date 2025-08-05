@@ -4,7 +4,7 @@ import * as cheerio from "cheerio";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const CRUNCHY_URL = "https://www.crunchyroll.com/videos/anime";
+const CRUNCHY_URL = "https://www.crunchyroll.com/videos/new";
 
 app.get("/feed", async (req, res) => {
   try {
