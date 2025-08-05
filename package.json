@@ -1,14 +1,15 @@
 {
-  "name": "crunchyroll-rss-puppeteer",
+  "name": "crunchyroll-rss-light",
   "version": "1.0.0",
-  "description": "RSS Feed für neue Crunchyroll-Episoden mit Puppeteer",
+  "description": "Inoffizieller Crunchyroll-Episoden-RSS-Feed für MonitoRSS",
   "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
     "express": "^4.18.2",
-    "puppeteer": "^21.3.8"
+    "node-fetch": "^3.3.2"
   }
 }

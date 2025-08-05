@@ -1,11 +1,11 @@
-# Crunchyroll RSS Feed (Puppeteer Version)
+# Crunchyroll RSS Feed (Lightweight)
 
-Ein robuster RSS-Feed-Scraper für neue Folgen auf Crunchyroll unter https://www.crunchyroll.com/de/videos/new.
+Ein einfacher Node.js-Service, der neue Episoden von Crunchyroll ausliest und als RSS-Feed zur Verfügung stellt. Optimiert für MonitoRSS.
 
 ## Features
-- Verwendet Puppeteer (Headless-Browser) für zuverlässigeres Scraping
-- Enthält Titel, Link, Vorschaubild (Thumbnail) und Veröffentlichungsdatum
-- Bereit für Deployment auf Render oder anderen Node.js-fähigen Plattformen
+- Titel, Link, Thumbnail, Veröffentlichungsdatum
+- Leichtgewichtig (kein Puppeteer)
+- Bereit für Render / Vercel Deployment
 
 ## Start (lokal)
 ```
@@ -14,8 +14,6 @@ npm start
 ```
 
 ## Deployment
-Deploy auf Render.com als Web-Service:
-- Build command: `npm install`
-- Start command: `node index.js`
+Einfach bei Render als Web Service deployen, Start Command ist `node index.js`.
 
-Dann erreichst du den Feed unter `/feed`.
+RSS Feed abrufbar unter `/feed`
